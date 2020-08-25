@@ -54,6 +54,12 @@ contract('Marketplace' , ([deployer , seller , buyer])=>{
     })
     it ('lists products' , async () =>{
 
+      const product = await marketplace.products(productCount);
+      assert.equal(product.id.toNumber() , productCount.toNumber() , 'id is correct');
+      assert .equal(product.name,'iPhone X' , 'name is correct')
+      assert .equal(product.price, web3.utils.toWei('1', 'Ether') ,'price is correct')
+      assert .equal(product.owner, seller , 'owner is correct')
+      assert .equal(product.purchased, false , 'purchased is correct')
 
     })
 
