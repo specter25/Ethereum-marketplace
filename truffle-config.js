@@ -8,6 +8,10 @@ module.exports = {
   },
   contracts_directory: './src/contracts/',
   contracts_build_directory: './src/abis/',
+  mocha: {
+    useColors: true
+  },
+  
   compilers: {
     solc: {
       optimizer: {
