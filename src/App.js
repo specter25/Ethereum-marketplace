@@ -3,6 +3,7 @@ import Web3 from 'web3'
 import './App.css';
 import Marketplace from '../src/abis/Marketplace.json'
 import Navbar from './components/Navbar'
+import Main from './components/Main'
 
 class App extends Component {
 
@@ -32,19 +33,31 @@ class App extends Component {
      
      const networkId = await web3.eth.net.getId() 
      const networkData = Marketplace.networks[networkId]
-     let marketplace
+
      if(networkData)
      {
       const abi = Marketplace.abi
-       marketplace = new  web3.eth.Contract(abi,networkData.address )
+      const marketplace = new  web3.eth.Contract(abi,networkData.address )
+      const productCount = await marketplace.methods.productCount().call()
+
+     console.log(productCount.toString())
+     this.setState({marketplace})
+     this.setState({loading:false})
      }
      else {
       window.alert('Marketplace contract not deployed to the public network')
      }
 
-     console.log(marketplace)
 
      
+  }
+
+  async createProduct(name , price) {
+    this.setState({loading: true})
+    this.state.marketplace.methods.createProduct(name, price).send({from : this.state.account})
+    .once('receipt ' , (receipt) =>{
+      this.setState({loading:false})
+    })
   }
 
   constructor(props)
@@ -56,12 +69,21 @@ class App extends Component {
       products:[],
       loading:true
     }
+    this.createProduct= this.createProduct.bind(this)
   }
   render( ) {
     return (
       <div className="App">
-        <Navbar />
-       <p>{this.state.account}</p>
+        <Navbar address={this.state.account} />
+        <main role="main" className="col-lg-12 d-flex">
+              { this.state.loading
+                ? <div id="loader" className="text-center"><p className="text-center">Loading...</p></div>
+                : <Main
+                  createProduct={this.createProduct}
+                   />
+              }
+            </main>
+       <p></p>
       </div>
     );
   }
