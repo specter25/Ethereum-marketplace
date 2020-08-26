@@ -11,6 +11,10 @@ class App extends Component {
     await this.loadWeb3()
     await this.loadBlockchainData()
   }
+  async componentWillUpdate() {
+    // await this.loadWeb3()
+    // await this.loadBlockchainData()
+  }
 
   async loadWeb3() {
     if (window.ethereum) {
@@ -39,9 +43,22 @@ class App extends Component {
       const abi = Marketplace.abi
       const marketplace = new  web3.eth.Contract(abi,networkData.address )
       const productCount = await marketplace.methods.productCount().call()
-
-     console.log(productCount.toString())
+     console.log(productCount)
      this.setState({marketplace})
+     this.setState({productCount})
+     
+      //load product
+     for ( var i=1 ; i<= productCount ;i++)
+     {
+       const product = await marketplace.methods.products(i).call();
+       this.setState({
+         products: [ ...this.state.products , product]
+       })
+     }
+
+
+
+     console.log(this.state.products)
      this.setState({loading:false})
      }
      else {
@@ -55,10 +72,19 @@ class App extends Component {
   async createProduct(name , price) {
     this.setState({loading: true})
     this.state.marketplace.methods.createProduct(name, price).send({from : this.state.account})
-    .once('receipt ' , (receipt) =>{
-      this.setState({loading:false})
+    .once('receipt', (receipt) => {
+      this.setState({ loading: false })
     })
   }
+
+  async purchaseProduct(id , price) {
+    this.setState({loading: true})
+    this.state.marketplace.methods.purchaseProduct(id).send({from : this.state.account , value: price})
+    .once('receipt', (receipt) => {
+      this.setState({ loading: false })
+    })
+  }
+  
 
   constructor(props)
   {
@@ -70,6 +96,7 @@ class App extends Component {
       loading:true
     }
     this.createProduct= this.createProduct.bind(this)
+    this.purchaseProduct= this.purchaseProduct.bind(this)
   }
   render( ) {
     return (
@@ -80,6 +107,9 @@ class App extends Component {
                 ? <div id="loader" className="text-center"><p className="text-center">Loading...</p></div>
                 : <Main
                   createProduct={this.createProduct}
+                  products ={this.state.products}
+                  purchaseProduct={this.purchaseProduct}
+                  address={this.state.account} 
                    />
               }
             </main>
